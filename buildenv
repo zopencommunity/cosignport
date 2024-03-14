@@ -1,0 +1,108 @@
+# Update bump details accordingly. Use bump check to confirm.
+# bump: cosign-version /COSIGN_VERSION="(.*)"/ https://github.com/sigstore/cosign.git|semver:*
+# COSIGN_VERSION="V.R.M" # Specify a stable release
+# export ZOPEN_STABLE_TAG="v${COSIGN_VERSION}"
+export ZOPEN_STABLE_URL="https://github.com/sigstore/cosign.git"
+export ZOPEN_STABLE_DEPS="comp_go git curl"
+export ZOPEN_DEV_URL="https://github.com/sigstore/cosign.git"
+export ZOPEN_DEV_DEPS="comp_go wharf"
+export ZOPEN_BUILD_LINE="DEV"
+export ZOPEN_RUNTIME_DEPS="bash"
+export ZOPEN_CATEGORIES="development"
+
+export ZOPEN_COMP=GO
+#export ZOPEN_CONFIGURE="zopen_config"
+export ZOPEN_CONFIGURE="zopen_wharf"
+
+export ZOPEN_CONFIGURE_MINIMAL=1
+export ZOPEN_MAKE="skip"
+export ZOPEN_INSTALL="zopen_install"
+
+export ZOPEN_CHECK="skip"
+export ZOPEN_CLEAN="zopen_clean"
+
+
+zopen_wharf()
+{
+  PTY_TAG="v1.1.21"
+  cd .. && echo ""
+  git clone https://github.com/creack/pty.git
+  echo "Checking out $PTY_TAG"
+  cd pty && git -c advice.detachedHead=false checkout $PTY_TAG
+  curl -s -o pty--$PTY_TAG.patch "https://raw.githubusercontent.com/ZOSOpenTools/wharf/main/deps-patches/pty--$PTY_TAG.patch"
+  git apply -v pty--$PTY_TAG.patch
+  cd ..
+  
+  git clone https://github.com/syndtr/goleveldb.git
+  git clone https://github.com/hashicorp/go-sockaddr.git
+
+  go work init ./cosign ./goleveldb ./go-sockaddr
+
+  wharf ./cosign/...
+  wharf ./goleveldb/...
+  wharf ./go-sockaddr/...
+  cd ./cosign
+}
+
+  
+zopen_init()
+{
+  echo "here-at-init $PWD"
+
+  export CGO_ENABLED=0
+  export GOTMPDIR=$PWD/go-tmpdir
+  export GOCACHE=$PWD/go-tmpcachedir
+  mkdir -p $PWD/go-tmpdir
+  mkdir -p $PWD/go-tmpcachedir
+  # Go installs binaries, so create the bin dir as well
+  export PATH=$PATH:$GOROOT/go-build-zos/bin
+  export GOBIN=$ZOPEN_INSTALL_DIR/bin
+  mkdir -p $ZOPEN_INSTALL_DIR/bin
+  unset CC CXX
+}
+
+zopen_config()
+{
+  echo "here-at-config $PWD"
+}
+
+zopen_install()
+{
+  echo "here-at-install $PWD"
+  echo "GOBIN is $GOBIN"
+
+  go install ./cmd/cosign
+}
+
+zopen_clean()
+{
+  echo "here-at-clean $PWD"
+
+  chmod -R 755 ../go
+  rm -rf ../go* ../go 
+}
+
+zopen_check_results()
+{
+  dir="$1"
+  pfx="$2"
+  chk="$1/$2_check.log"
+
+  # Echo the following information to gauge build health
+  echo "actualFailures:0"
+  echo "totalTests:1"
+  echo "expectedFailures:0"
+  echo "expectedTotalTests:1"
+}
+
+zopen_get_version()
+{
+  # Modify to echo the version of your tool/library
+  # Rather than hardcoding the version, obtain the version by running the tool/library
+  echo "1.0.0"
+}
+
+zopen_clean()
+{
+  rm -rf ../.wharf_cache ../go.work* ../wharf_port
+}
