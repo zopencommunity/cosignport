@@ -3,9 +3,9 @@
 # COSIGN_VERSION="V.R.M" # Specify a stable release
 # export ZOPEN_STABLE_TAG="v${COSIGN_VERSION}"
 export ZOPEN_STABLE_URL="https://github.com/sigstore/cosign.git"
-export ZOPEN_STABLE_DEPS="comp_go git curl"
+export ZOPEN_STABLE_DEPS="check_go git curl"
 export ZOPEN_DEV_URL="https://github.com/sigstore/cosign.git"
-export ZOPEN_DEV_DEPS="comp_go wharf"
+export ZOPEN_DEV_DEPS="check_go wharf"
 export ZOPEN_BUILD_LINE="DEV"
 export ZOPEN_RUNTIME_DEPS="bash"
 export ZOPEN_CATEGORIES="development"
